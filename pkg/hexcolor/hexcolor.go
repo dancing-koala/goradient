@@ -11,6 +11,15 @@ var (
 	validHexRegex = regexp.MustCompile("^#([A-F0-9]{2}){3,4}$")
 )
 
+const (
+	maskR = 0x00FF0000
+	maskG = 0x0000FF00
+	maskB = 0x000000FF
+	maskA = 0xFF000000
+
+	defaultA = uint8(0xFF)
+)
+
 func IsValid(hex string) bool {
 	return validHexRegex.Match([]byte(hex))
 }
@@ -20,31 +29,28 @@ func ParseToRGBA(hex string) (color.Color, error) {
 		return nil, errors.New(hex + " is not valid !")
 	}
 
-	runes := []rune(hex)
+	withAlpha := len([]rune(hex)) > 7
 
-	offset := 1
+	colorInt, err := strconv.ParseUint(hex[1:], 16, 64)
 
-	a := uint8(0xFF)
-
-	if len(runes) > 7 {
-		a = parseUint8(string(runes[offset : offset+2]))
-
-		offset += 2
+	if err != nil {
+		return nil, errors.New(hex + " could not be parsed: " + err.Error())
 	}
 
-	r := parseUint8(string(runes[offset : offset+2]))
-	g := parseUint8(string(runes[offset+2 : offset+4]))
-	b := parseUint8(string(runes[offset+4:]))
+	a := defaultA
+
+	if withAlpha {
+		a = uint8(colorInt & maskA >> 24)
+	}
+
+	r := uint8(colorInt & maskR >> 16)
+	g := uint8(colorInt & maskG >> 8)
+	b := uint8(colorInt & maskB)
 
 	return color.RGBA{
-		A: a,
 		R: r,
 		G: g,
 		B: b,
+		A: a,
 	}, nil
-}
-
-func parseUint8(str string) uint8 {
-	result, _ := strconv.ParseUint(str, 16, 8)
-	return uint8(result)
 }

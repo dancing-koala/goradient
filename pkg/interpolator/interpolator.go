@@ -1,7 +1,7 @@
 package interpolator
 
 type Interpolator interface {
-	Interpolate(input float64)
+	Interpolate(input float64) float64
 }
 
 type linearInterpolator struct {
