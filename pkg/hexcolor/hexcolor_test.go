@@ -37,29 +37,6 @@ func TestHexValidation_ShouldNotBeValid(t *testing.T) {
 	}
 }
 
-func TestParseToUint8(t *testing.T) {
-	values := map[string]uint8{
-		"FF": 0xFF,
-		"F0": 0xF0,
-		"AA": 0xAA,
-		"AB": 0xAB,
-		"00": 0x00,
-		"12": 0x12,
-		"07": 0x07,
-		"D7": 0xD7,
-	}
-
-	var result uint8
-
-	for k, v := range values {
-		result = parseUint8(k)
-
-		if v != result {
-			t.Errorf("Expected <%d>, got <%d>", v, result)
-		}
-	}
-}
-
 func TestParseToRGBA_InvalidColor(t *testing.T) {
 	hex := "#FFFFFFFG"
 

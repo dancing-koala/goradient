@@ -1,6 +1,8 @@
 package interpolator
 
-import "testing"
+import (
+	"testing"
+)
 
 var (
 	val1 = 0.0
