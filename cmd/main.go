@@ -8,6 +8,7 @@ import (
 	"image/color"
 	"image/png"
 	"os"
+	"time"
 )
 
 type step struct {
@@ -21,18 +22,22 @@ func main() {
 	width, height := 800, 200
 
 	hexColors := []string{
-		"#00FF00",
-		"#FF0000",
+		"#FFFF00",
+		"#FFFF00",
+		"#FFFF00",
+		"#FFFF00",
+		// "#FF0000",
+		// "#00FF00",
+		// "#FF00FF",
 		// "#00FF00",
 		// "#FFFF00",
 		// "#FF0000",
 		// "#FFFF00",
 		// "#00FF00",
 		// "#00FFFF",
-		// "#0000FF",
 	}
 
-	steps := make([]step, len(hexColors)-1)
+	steps := make([]step, 1)
 
 	createSteps(steps, width)
 
@@ -40,31 +45,26 @@ func main() {
 
 	img := image.NewRGBA(image.Rect(left, top, width, height))
 
-	var startColor, endColor color.Color
+	var startColor, midOneColor, midTwoColor, endColor color.Color
 	var err error
 
+	start := time.Now()
+
 	for _, currStep := range steps {
-		startColor, err = hexcolor.ParseToRGBA(hexColors[offset])
-
-		if err != nil {
-			fmt.Printf("Could not parse start color<%s>: %s\n", hexColors[offset], err)
-			return
-		}
-
-		endColor, err = hexcolor.ParseToRGBA(hexColors[offset+1])
-
-		if err != nil {
-			fmt.Printf("Could not parse end color<%s>: %s\n", hexColors[offset+1], err)
-			return
-		}
+		startColor, err = hexcolor.ParseToRGBA(hexColors[0])
+		midOneColor, err = hexcolor.ParseToRGBA(hexColors[1])
+		midTwoColor, err = hexcolor.ParseToRGBA(hexColors[2])
+		endColor, err = hexcolor.ParseToRGBA(hexColors[3])
 
 		r, g, b, a := startColor.RGBA()
-		rr, gg, bb, aa := endColor.RGBA()
+		rr, gg, bb, aa := midOneColor.RGBA()
+		rrr, ggg, bbb, aaa := midTwoColor.RGBA()
+		rrrr, gggg, bbbb, aaaa := endColor.RGBA()
 
-		rInterpol := interpolator.NewLinearInterpolator(float64(r&0xFF), float64(rr&0xFF))
-		gInterpol := interpolator.NewLinearInterpolator(float64(g&0xFF), float64(gg&0xFF))
-		bInterpol := interpolator.NewLinearInterpolator(float64(b&0xFF), float64(bb&0xFF))
-		aInterpol := interpolator.NewLinearInterpolator(float64(a&0xFF), float64(aa&0xFF))
+		rInterpol := interpolator.NewCubic(float64(r&0xFF), float64(rr&0xFF), float64(rrr&0xFF), float64(rrrr&0xFF))
+		gInterpol := interpolator.NewCubic(float64(g&0xFF), float64(gg&0xFF), float64(ggg&0xFF), float64(gggg&0xFF))
+		bInterpol := interpolator.NewCubic(float64(b&0xFF), float64(bb&0xFF), float64(bbb&0xFF), float64(bbbb&0xFF))
+		aInterpol := interpolator.NewCubic(float64(a&0xFF), float64(aa&0xFF), float64(aaa&0xFF), float64(aaaa&0xFF))
 
 		var newa, newr, newg, newb uint8
 		var progress float64
@@ -85,6 +85,9 @@ func main() {
 				A: newa,
 			}
 
+			fmt.Print(newa, " >> ")
+			fmt.Println("")
+
 			for j := 0; j < height; j++ {
 				img.Set(i, j, c)
 			}
@@ -92,6 +95,8 @@ func main() {
 
 		offset++
 	}
+
+	fmt.Println("Processing took ", time.Since(start))
 
 	fmt.Println("Saving image to output file...")
 	f, _ := os.OpenFile("./gen/gradient.png", os.O_WRONLY|os.O_CREATE, 0777)
