@@ -15,6 +15,10 @@ const (
 	TYPE_CUBIC      = "cubic"
 )
 
+var (
+	WorkerCount = 8
+)
+
 type Generator func(hexColors []string, img *image.RGBA, w, h int) error
 
 func GetGenerator(gradientType string) (Generator, error) {
@@ -34,27 +38,35 @@ func GetGenerator(gradientType string) (Generator, error) {
 }
 
 func drawGradient(img *image.RGBA, height, start, end int, rInterpol, gInterpol, bInterpol, aInterpol interpolator.Interpolator) {
-	var newa, newr, newg, newb uint8
 	var progress float64
 
-	for i := start; i < end; i++ {
+	pool := WorkerCount
+	doneChan := make(chan interface{})
 
-		progress = float64(i-start) / float64(end-start)
+	for col := start; col < end; col++ {
 
-		newr = uint8(rInterpol.Interpolate(progress))
-		newg = uint8(gInterpol.Interpolate(progress))
-		newb = uint8(bInterpol.Interpolate(progress))
-		newa = uint8(aInterpol.Interpolate(progress))
+		progress = float64(col-start) / float64(end-start)
 
-		c := &color.RGBA{
-			R: newr,
-			G: newg,
-			B: newb,
-			A: newa,
-		}
+		go func(col int, progress float64) {
+			c := &color.RGBA{
+				R: uint8(rInterpol.Interpolate(progress)),
+				G: uint8(gInterpol.Interpolate(progress)),
+				B: uint8(bInterpol.Interpolate(progress)),
+				A: uint8(aInterpol.Interpolate(progress)),
+			}
 
-		for j := 0; j < height; j++ {
-			img.Set(i, j, c)
+			for row := 0; row < height; row++ {
+				img.Set(col, row, c)
+			}
+
+			doneChan <- nil
+		}(col, progress)
+
+		pool--
+
+		if pool < 1 {
+			<-doneChan
+			pool++
 		}
 	}
 }

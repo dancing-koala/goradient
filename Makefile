@@ -5,7 +5,13 @@ GOCLEAN=go clean
 BIN=gradient
 
 run:
-	$(GORUN) cmd/main.go -h=100 -out=./gen/gradient.png '#FF0000,#00FF00,#0000FF'
+	$(GORUN) cmd/main.go -h=100 -out=./gen/gradient.png '#FF0000,#00FF00,#0000FF,#000000'
+
+runq:
+	$(GORUN) cmd/main.go -type=quadratic -h=100 -out=./gen/gradient.png '#FF0000,#00FF00,#0000FF'
+
+runc:
+	$(GORUN) cmd/main.go -type=cubic -h=100 -out=./gen/gradient.png '#FF0000,#00FF00,#00FF00,#0000FF'
 
 build:
 	$(GOBUILD) -o $(BIN) -v ./cmd/main.go

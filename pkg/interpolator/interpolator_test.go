@@ -13,18 +13,18 @@ var (
 )
 
 func rawCubic(val1, val2, val3, val4, t float64) float64 {
-	return (1-t)*(1-t)*(1-t)*val1 +
-		(1-t)*(1-t)*t*val2 +
-		(1-t)*t*t*val3 +
+	return (1.0-t)*(1.0-t)*(1.0-t)*val1 +
+		(1.0-t)*(1.0-t)*t*val2 +
+		(1.0-t)*t*t*val3 +
 		t*t*t*val4
 }
 
 func preparedCubic(val1, val2, val3, val4, t float64) float64 {
 	tSqr := t * t
-	oneMinusT := 1 - t
-	oneMinusTSqr := oneMinusT * oneMinusT
+	d := 1.0 - t
+	dSqr := d * d
 
-	return oneMinusTSqr*(oneMinusT*val1+t*val2) + tSqr*(oneMinusT*val3+t*val4)
+	return dSqr*(d*val1+t*val2) + tSqr*(d*val3+t*val4)
 }
 
 func BenchmarkRawCubicCalculus(b *testing.B) {
