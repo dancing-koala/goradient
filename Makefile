@@ -5,7 +5,7 @@ GOCLEAN=go clean
 BIN=gradient
 
 run:
-	$(GORUN) cmd/main.go -h=100 -out=./gen/gradient.png '#FF0000,#00FF00,#0000FF,#000000'
+	$(GORUN) cmd/main.go -h=200 -out=./gen/gradient.png '#FF0000,#00FF00,#0000FF'
 
 runq:
 	$(GORUN) cmd/main.go -type=quadratic -h=100 -out=./gen/gradient.png '#FF0000,#00FF00,#0000FF'

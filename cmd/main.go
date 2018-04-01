@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/dancing-koala/gradient/pkg/generator"
+	"github.com/dancing-koala/goradient/pkg/generator"
 	"image"
 	"image/png"
 	"os"

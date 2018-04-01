@@ -3,10 +3,11 @@ package generator
 import (
 	"errors"
 	"fmt"
-	"github.com/dancing-koala/gradient/pkg/hexcolor"
-	"github.com/dancing-koala/gradient/pkg/interpolator"
+	"github.com/dancing-koala/goradient/pkg/hexcolor"
+	"github.com/dancing-koala/goradient/pkg/interpolator"
 	"image"
 	"image/color"
+	"sync"
 )
 
 const (
@@ -40,10 +41,19 @@ func GetGenerator(gradientType string) (Generator, error) {
 func drawGradient(img *image.RGBA, height, start, end int, rInterpol, gInterpol, bInterpol, aInterpol interpolator.Interpolator) {
 	var progress float64
 
+	var wg sync.WaitGroup
+
 	pool := WorkerCount
-	doneChan := make(chan interface{})
+	doneChan := make(chan interface{}, WorkerCount)
+	defer close(doneChan)
 
 	for col := start; col < end; col++ {
+		if pool < 1 {
+			<-doneChan
+			pool++
+		}
+
+		wg.Add(1)
 
 		progress = float64(col-start) / float64(end-start)
 
@@ -59,16 +69,15 @@ func drawGradient(img *image.RGBA, height, start, end int, rInterpol, gInterpol,
 				img.Set(col, row, c)
 			}
 
+			wg.Done()
 			doneChan <- nil
+
 		}(col, progress)
 
 		pool--
-
-		if pool < 1 {
-			<-doneChan
-			pool++
-		}
 	}
+
+	wg.Wait()
 }
 
 func createSteps(steps []step, size int) {
